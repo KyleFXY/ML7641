@@ -325,7 +325,7 @@ plt.savefig("Neural Network Model Taiwan.png")
 
 print(time)
 
-Boosting
+# Boosting
 fig, axs = plt.subplots(3,2, figsize=(14, 12), facecolor='w', edgecolor='k')
 axs = axs.ravel()
 
@@ -333,19 +333,17 @@ time=[]
 
 test_sizes=[0.6,0.5,0.4,0.3,0.2,0.1]
 n_estimators=[]
-parameters = {'n_estimators': [100, 200, 500], 'ccp_alpha': [0.01, 0.05],
-              'learning_rate': [0.001, 0.005]}
+parameters = {'n_estimators': [100, 200, 500, 800], 'ccp_alpha': [0.0001, 0.01 ,0.1]}
 train_scores = []
 test_scores = []
 
 for  i in range(len(test_sizes)):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_sizes[i], random_state=31)
-    model_boosting=GradientBoostingClassifier(random_state=37,n_iter_no_change=100)
+    model_boosting=GradientBoostingClassifier(random_state=32,n_iter_no_change=100)
     model_boostings=GridSearchCV(model_boosting,parameters)
     model_boostings.fit(X_train, y_train)
     train_score = f1_score(y_train, model_boostings.predict(X_train), average='macro')
     train_scores.append(train_score)
-    print(train_score)
     test_score = f1_score(y_test, model_boostings.predict(X_test), average='macro')
     test_scores.append(test_score)
 
@@ -388,3 +386,93 @@ for model in models:
     test_time.append(end-start)
 print(training_time)
 print(test_time)
+#
+## test neural netowrk by layers
+
+
+data2=pd.read_csv("Taiwan_data.csv",skiprows=1,header=None)
+X=data2.iloc[:,1:]
+y=data2.iloc[:,0]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=31)
+
+
+training_time=[]
+predict_time=[]
+training_scores=[]
+prediction_scores=[]
+layers=[50,100,200,300,400,500,800,1000]
+for layer in layers:
+    mlp_model=MLPClassifier(hidden_layer_sizes=layer)
+    start=time.time()
+    mlp_model.fit(X_train,y_train)
+    end=time.time()
+    training_scores.append(f1_score(y_train,mlp_model.predict(X_train),average='macro'))
+    mlp_model.predict(X_test)
+    end2=time.time()
+    prediction_scores.append(f1_score(y_test,mlp_model.predict(X_test),average='macro'))
+
+    training_time.append(end-start)
+    predict_time.append(end2-end)
+
+fig, ax = plt.subplots()
+ax.set_xlabel("Neutral Layer Sizes ")
+ax.set_ylabel("Time Spent")
+ax.set_title("Neural Network Training Time ")
+ax.plot(layers, training_time, marker='o', label="training_time",
+        drawstyle="steps-post")
+ax.plot(layers , predict_time, marker='o', label="prediction_time",
+        drawstyle="steps-post")
+ax.legend()
+plt.savefig("Neutral Network Model Performance.png")
+
+fig, ax = plt.subplots()
+ax.set_xlabel("Neutral Layer Sizes ")
+ax.set_ylabel("F1 Score")
+ax.set_title("Neural Network F1 score vs Layer Szie ")
+ax.plot(layers, training_scores, marker='o', label="training",
+        drawstyle="steps-post")
+ax.plot(layers , prediction_scores, marker='o', label="test",
+        drawstyle="steps-post")
+ax.legend()
+plt.savefig("Neutral Network Model Scores.png")
+
+
+training_time=[]
+predict_time=[]
+training_scores=[]
+prediction_scores=[]
+ns=[50,100,200,300,400,500,800,1000]
+for n in ns:
+    mlp_model=GradientBoostingClassifier(n_estimators=n)
+    start=time.time()
+    mlp_model.fit(X_train,y_train)
+    end=time.time()
+    training_scores.append(f1_score(y_train,mlp_model.predict(X_train),average='macro'))
+    mlp_model.predict(X_test)
+    end2=time.time()
+    prediction_scores.append(f1_score(y_test,mlp_model.predict(X_test),average='macro'))
+
+    training_time.append(end-start)
+    predict_time.append(end2-end)
+
+fig, ax = plt.subplots()
+ax.set_xlabel("Boosting Sizes")
+ax.set_ylabel("Time Spent")
+ax.set_title("BoostingTraining Time ")
+ax.plot(ns, training_time, marker='o', label="training_time",
+        drawstyle="steps-post")
+ax.plot(ns , predict_time, marker='o', label="prediction_time",
+        drawstyle="steps-post")
+ax.legend()
+plt.savefig("Boosting Model Performance.png")
+
+fig, ax = plt.subplots()
+ax.set_xlabel("Boosting  Sizes ")
+ax.set_ylabel("F1 Score")
+ax.set_title("Boosting F1 score vs Layer Szie ")
+ax.plot(ns, training_scores, marker='o', label="training",
+        drawstyle="steps-post")
+ax.plot(ns , prediction_scores, marker='o', label="test",
+        drawstyle="steps-post")
+ax.legend()
+plt.savefig("Boosting Model Scores.png")
